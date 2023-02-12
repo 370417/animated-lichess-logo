@@ -1,5 +1,5 @@
 import './style.css';
-import { svg } from './inkscape/inkscape-svg';
-import { parseAnimationParams } from './inkscape/parse';
+import { get } from './state';
+import { animParams } from './inkscape/state';
 
-console.log(parseAnimationParams(svg));
+console.log(get(animParams));
