@@ -31,7 +31,7 @@ declare global {
 
     type BezierPathData = {
         type: 'C';
-        /** x1, y1, x2, y2, x, y */
+        /** [x1, y1, x2, y2, x, y] */
         values: [number, number, number, number, number, number];
     };
 
