@@ -1,0 +1,9 @@
+tabWidth: 4
+singleQuote: true
+trailingComma: 'all'
+overrides:
+  - files:
+      - '*.html'
+      - '*.yml'
+    options:
+      tabWidth: 2

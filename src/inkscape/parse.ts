@@ -11,13 +11,13 @@ export type SegmentParams = {
     segmentData: SegmentData;
     startData: [MovePathData, LinePathData];
     endData: [MovePathData, LinePathData];
-}
+};
 
 /**
  * Extract animation parameters from an inkscape svg element.
- * 
+ *
  * Gets width and height from the svg's attributes.
- * 
+ *
  * Parses children using the label of elements. Possible labels:
  * - mask
  *   Required.
@@ -41,9 +41,9 @@ export type SegmentParams = {
  *   start slope of one segment is always the same as the end slope of
  *   the previous segment.
  *   Parser does not check that the start index is the end index plus one.
- * 
+ *
  * Indices start at 1.
- * 
+ *
  * All elements are assumed to be paths. Elements that aren't labeled
  * according to this spec will be ignored.
  */
@@ -59,8 +59,10 @@ export function parseAnimationParams(svg: SVGElement): AnimationParams {
         if (!segmentData) break;
         const startPath = pathsByLabel.get('start' + segmentIndex);
         const endPath = pathsByLabel.get('end' + segmentIndex);
-        if (!startPath) throw `Parse error: start path for segment ${segmentIndex} is missing`;
-        if (!endPath) throw `Parse error: end path for segment ${segmentIndex} is missing`;
+        if (!startPath)
+            throw `Parse error: start path for segment ${segmentIndex} is missing`;
+        if (!endPath)
+            throw `Parse error: end path for segment ${segmentIndex} is missing`;
         segments.push({
             segmentData,
             startData: pathToLine(startPath),
@@ -82,7 +84,9 @@ export function parseAnimationParams(svg: SVGElement): AnimationParams {
     };
 }
 
-function childrenToMaps(children: HTMLCollection): [Map<string, SVGPathElement>, Map<string, SegmentData>] {
+function childrenToMaps(
+    children: HTMLCollection
+): [Map<string, SVGPathElement>, Map<string, SegmentData>] {
     // Start, end, and mask paths only
     const pathsByLabel: Map<string, SVGPathElement> = new Map();
     // Segment paths after being split
@@ -94,7 +98,7 @@ function childrenToMaps(children: HTMLCollection): [Map<string, SVGPathElement>,
 
         if (label && child.nodeName === 'path') {
             const path = child as SVGPathElement;
-            if ("mask" == label) {
+            if ('mask' == label) {
                 pathsByLabel.set(label, path);
             } else if (/^end\d+-start\d+$/.test(label)) {
                 // Split end{n}start{n+1} into two separate paths
@@ -106,7 +110,9 @@ function childrenToMaps(children: HTMLCollection): [Map<string, SVGPathElement>,
             } else if (/^segment\d+(?:-\d+)+$/.test(label)) {
                 // Split segments with multiple parts into separate paths
                 const [firstLabel, ...moreIndices] = label.split('-');
-                const splitPaths = splitPathData(path.getPathData({ normalize: true }));
+                const splitPaths = splitPathData(
+                    path.getPathData({ normalize: true })
+                );
                 // Add one to account for firstLabel
                 if (splitPaths.length < moreIndices.length + 1) {
                     throw 'Parse error: path data has more segments than described by path label';
@@ -122,10 +128,13 @@ function childrenToMaps(children: HTMLCollection): [Map<string, SVGPathElement>,
             } else if (/^segment\d+$/.test(label)) {
                 const pathData = path.getPathData({ normalize: true });
                 if (pathData.length < 2) throw 'Parse error: path too short';
-                if (pathData.length > 2) throw 'Parse error: path data has more than one segment';
+                if (pathData.length > 2)
+                    throw 'Parse error: path data has more than one segment';
                 const [moveData, drawData] = pathData;
-                if (moveData.type != 'M') throw 'Parse error: path must start with move';
-                if (drawData.type != 'C' && drawData.type != 'L') throw 'Parse error: path must end with C or L command';
+                if (moveData.type != 'M')
+                    throw 'Parse error: path must start with move';
+                if (drawData.type != 'C' && drawData.type != 'L')
+                    throw 'Parse error: path must end with C or L command';
                 pathDataByLabel.set(label, [moveData, drawData]);
             } else {
                 console.warn('Failed to parse path label, skipping:', label);
@@ -138,10 +147,10 @@ function childrenToMaps(children: HTMLCollection): [Map<string, SVGPathElement>,
 
 /**
  * Split a path into one segment paths
- * 
+ *
  * The first command of the input path must be a move.
  * The remaining commands must not be moves.
- * 
+ *
  * Also doesn't support the Z command. It's feasible, but Z is not currently being used.
  */
 function splitPathData(pathData: PathData[]): SegmentData[] {
@@ -195,9 +204,10 @@ function splitPathData(pathData: PathData[]): SegmentData[] {
 function pathToLine(path: SVGPathElement): [MovePathData, LinePathData] {
     const pathData = path.getPathData({ normalize: true });
     if (pathData.length < 2) throw 'Parse error: path too short';
-    if (pathData.length > 2) throw 'Parse error: path data has more than one segment';
+    if (pathData.length > 2)
+        throw 'Parse error: path data has more than one segment';
     const [moveData, lineData] = pathData;
     if (moveData.type != 'M') throw 'Parse error: path must start with move';
     if (lineData.type != 'L') throw 'Parse error: path must end with L command';
-    return [moveData, lineData]
+    return [moveData, lineData];
 }

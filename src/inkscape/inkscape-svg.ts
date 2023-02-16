@@ -1,4 +1,6 @@
+import { producer } from '../state';
 import inkscapeFile from './logo-inkscape.svg?raw';
+import { parseAnimationParams } from './parse';
 
 // First line isn't html, so remove it
 const svgText = inkscapeFile.replace(/<\?xml.*\?>\n/, '');
@@ -9,4 +11,4 @@ const template = document.createElement('template');
 template.innerHTML = svgNodeText;
 const svg = template.content.firstChild as SVGElement;
 
-export { svg };
+export const animParams = producer(parseAnimationParams(svg));

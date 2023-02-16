@@ -2,7 +2,7 @@
 // Some functionality left out of these type declarations
 
 // need this export to make this a module
-export {}
+export {};
 
 declare global {
     interface SVGPathElement {
@@ -13,7 +13,11 @@ declare global {
     // Normalized values only because we declared getPathData to always normalize.
     // If we hadn't, we'd also have to consider arcs 'A', relative types like 'm',
     // and shorthand types like 'h'.
-    type PathData = MovePathData | LinePathData | BezierPathData | ClosePathData;
+    type PathData =
+        | MovePathData
+        | LinePathData
+        | BezierPathData
+        | ClosePathData;
 
     type SegmentData = [MovePathData, LinePathData | BezierPathData];
 

@@ -6,6 +6,110 @@
     <title>Animated Lichess logo</title>
   </head>
   <body>
+    <h1>(Re)animating the Lichess logo</h1>
+    <p>
+      I'm remaking the
+      <a
+        href="https://lichess.org/@/user370417/blog/the-lichess-logo-animated/Df4SWGyX"
+        >Lichess logo animation</a
+      >
+      to make it work outside the browser. I thought it might be nice to explain
+      what I'm doing as I go along, hence this blog post.
+    </p>
+    <h2>Planning</h2>
+    <p>This is the Inkscape document I'm using to plan out the animation.</p>
+    <img src="src/inkscape/logo-inkscape.svg" width="200px" height="200px" />
+    <h2>Drawing the paths</h2>
+    <p>
+      Step one is drawing the paths we want to animate. There are built-in
+      functions for drawing bézier curves, but they can't draw partial paths.
+      That's something we'll need to implement ourselves.
+    </p>
+    <div id="drawPath">
+      <div class="output"></div>
+      <div class="controls">
+        <label for="drawPathI">Iterations</label>
+        <input type="range" name="drawPathI" id="drawPathI" max="20" />
+        <span class="state-display" data-state-provider="drawPathFrame"></span>
+        Length:
+        <span
+          class="state-display"
+          data-state-provider="drawPathCurveLength"
+        ></span>
+      </div>
+    </div>
+    <h2>Basic animation</h2>
+    <div id="basicAnimation">
+      <div class="output"></div>
+      <div class="controls">
+        <label for="basicAnimationFrame">Length</label>
+        <input
+          type="range"
+          name="basicAnimationFrame"
+          id="basicAnimationFrame"
+          max="100"
+        />
+        <span
+          class="state-display"
+          data-state-provider="basicCurveLength"
+        ></span>
+        <input
+          type="checkbox"
+          name="basicAnimationPlay"
+          id="basicAnimationPlay"
+        />
+      </div>
+    </div>
+    <h2>Lerp animation</h2>
+    <div id="lerpAnimation">
+      <div class="output"></div>
+      <div class="controls">
+        <label for="lerpAnimationFrame">Length</label>
+        <input
+          type="range"
+          name="lerpAnimationFrame"
+          id="lerpAnimationFrame"
+          max="100"
+        />
+        <span
+          class="state-display"
+          data-state-provider="lerpCurveLength"
+        ></span>
+        <input
+          type="checkbox"
+          name="lerpAnimationPlay"
+          id="lerpAnimationPlay"
+        />
+      </div>
+    </div>
+    <h2>Mask animation</h2>
+    <div id="maskAnimation">
+      <div class="output"></div>
+      <div class="controls">
+        <label for="maskAnimationFrame">Length</label>
+        <input
+          type="range"
+          name="maskAnimationFrame"
+          id="maskAnimationFrame"
+          max="100"
+        />
+        <span
+          class="state-display"
+          data-state-provider="maskCurveLength"
+        ></span>
+        <input
+          type="checkbox"
+          name="maskAnimationPlay"
+          id="maskAnimationPlay"
+        />
+        <br />
+        <label for="maskMaskToggle">Mask</label>
+        <input type="checkbox" name="maskMaskToggle" id="maskMaskToggle" />
+      </div>
+    </div>
+    <svg width="0" height="0">
+      <mask id="logo"></mask>
+    </svg>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

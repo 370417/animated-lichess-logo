@@ -1,0 +1,9 @@
+.output {
+    width: 200px;
+    height: 200px;
+}
+
+.output svg {
+    width: 100%;
+    height: 100%;
+}
