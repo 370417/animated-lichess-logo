@@ -107,6 +107,40 @@
       </div>
     </div>
     <h2>Edge vectors</h2>
+    <ul>
+      <li>
+        Use tangents instead of normals in planning because they come with
+        direction.
+      </li>
+      <li>
+        Calculate deltas (approximation of derivative) of path positions. Each
+        delta is a vec2.
+      </li>
+      <li>
+        Actually we might want cumulative delta. That's just the normal
+        positions minus the position of the start point.
+      </li>
+      <li>
+        Figure out what linear transform is required to get the natural
+        start/end deltas to match the desired start/end tangents. Make sure
+        tangents have same length as start/end deltas for this.
+      </li>
+      <li>ignore above</li>
+      <li>
+        It's like linear interpolation, but we use the path data to interpolate
+        instead.
+      </li>
+      <li>
+        So with lerp, to get a value between start and end, you solve a linear
+        equation. For path data interpolation, you look up the value of the path
+        at the given time and see where it is at compared to the start and end
+        of the path.
+      </li>
+      <li>
+        To implement this, you can normalize the path points to start at 0 and
+        end at 1, then interpolation is easy.
+      </li>
+    </ul>
     <div id="edgeVec">
       <div class="output"></div>
       <div class="controls">

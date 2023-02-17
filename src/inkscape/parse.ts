@@ -1,4 +1,5 @@
 import 'path-data-polyfill';
+import { Points } from '../bezier';
 
 export type AnimationParams = {
     width: number;
@@ -9,8 +10,9 @@ export type AnimationParams = {
 
 export type SegmentParams = {
     segmentData: SegmentData;
-    startData: [MovePathData, LinePathData];
-    endData: [MovePathData, LinePathData];
+    envelopePoints: Points;
+    startData?: [MovePathData, LinePathData];
+    endData?: [MovePathData, LinePathData];
 };
 
 /**
@@ -42,8 +44,8 @@ export type SegmentParams = {
  *   the previous segment.
  *   Parser does not check that the start index is the end index plus one.
  * - envelope{n}
- *   A closed path that fully covers its corresponding segment.
- *   The order of points in the path matters here. The last two
+ *   An open path that fully covers its corresponding segment.
+ *   The order of points in the path matters here. The first and last
  *   points should be the ones near the end of the segment.
  *   These correspond to the parts of the envelope that will move.
  *   All other points of the path will remain fixed during animation.
@@ -65,14 +67,17 @@ export function parseAnimationParams(svg: SVGElement): AnimationParams {
         if (!segmentData) break;
         const startPath = pathsByLabel.get('start' + segmentIndex);
         const endPath = pathsByLabel.get('end' + segmentIndex);
-        if (!startPath)
-            throw `Parse error: start path for segment ${segmentIndex} is missing`;
-        if (!endPath)
-            throw `Parse error: end path for segment ${segmentIndex} is missing`;
+        const envelopePath = pathsByLabel.get('envelope' + segmentIndex);
+        if (!envelopePath) {
+            throw `Parse error: envelope path for segment ${segmentIndex} is missing`;
+        }
         segments.push({
             segmentData,
-            startData: pathToLine(startPath),
-            endData: pathToLine(endPath),
+            envelopePoints: pathDataToPoints(
+                envelopePath.getPathData({ normalize: true }),
+            ),
+            startData: startPath && pathToLine(startPath),
+            endData: endPath && pathToLine(endPath),
         });
     }
 
@@ -150,7 +155,7 @@ function childrenToMaps(
                     throw 'Parse error: path must end with C or L command';
                 pathDataByLabel.set(label, [moveData, drawData]);
             } else if (/^envelope\d+$/.test(label)) {
-                const pathData = path.getPathData({ normalize: true });
+                pathsByLabel.set(label, path);
             } else {
                 console.warn('Failed to parse path label, skipping:', label);
             }
@@ -171,9 +176,9 @@ function childrenToMaps(
 function splitPathData(pathData: PathData[]): SegmentData[] {
     if (pathData.length < 2) throw 'Parse error: path is too short';
     const head = pathData[0];
-    let move = {
-        type: 'M' as 'M',
-        values: [0, 0] as [number, number],
+    let move: MovePathData = {
+        type: 'M',
+        values: [0, 0],
     };
     if (head.type === 'M') {
         move = head;
@@ -225,4 +230,26 @@ function pathToLine(path: SVGPathElement): [MovePathData, LinePathData] {
     if (moveData.type != 'M') throw 'Parse error: path must start with move';
     if (lineData.type != 'L') throw 'Parse error: path must end with L command';
     return [moveData, lineData];
+}
+
+function pathDataToPoints(pathData: PathData[]): Points {
+    const points: Points = {
+        xs: [],
+        ys: [],
+    };
+    for (let i = 0; i < pathData.length; i++) {
+        const pathDatum = pathData[i];
+        if (pathDatum.type == 'M') {
+            if (i !== 0) throw 'Parse error: path cannot contain a second move';
+            points.xs.push(pathDatum.values[0]);
+            points.ys.push(pathDatum.values[1]);
+        } else if (pathDatum.type == 'L') {
+            if (i === 0) throw 'Parse error: path must start with move';
+            points.xs.push(pathDatum.values[0]);
+            points.ys.push(pathDatum.values[1]);
+        } else {
+            throw 'Parse error: path cannot contain C or Z command';
+        }
+    }
+    return points;
 }

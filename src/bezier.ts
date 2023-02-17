@@ -58,7 +58,7 @@ export function distance(
     x0: number,
     y0: number,
     x1: number,
-    y1: number
+    y1: number,
 ): number {
     return Math.sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
 }
@@ -79,7 +79,7 @@ export function limitByLength(
     points: Points[],
     lengths: number[][],
     currLength: number,
-    doLerp: boolean
+    doLerp: boolean,
 ) {
     return points.map((points, i) => {
         const filtered: Points = { xs: [], ys: [] };
@@ -100,4 +100,37 @@ export function limitByLength(
         }
         return filtered;
     });
+}
+
+export function getCurrentSegmentIndex(points: Points[]): number {
+    const firstEmptySegmentIndex = points.findIndex((p) => p.xs.length < 2);
+    if (firstEmptySegmentIndex === -1) return points.length - 1;
+    else return firstEmptySegmentIndex - 1;
+}
+
+export function getLatestPoint(
+    points: Points[],
+): { x: number; y: number } | undefined {
+    const currentSegmentIndex = getCurrentSegmentIndex(points);
+    if (currentSegmentIndex < 0) return;
+    const { xs, ys } = points[currentSegmentIndex];
+    return {
+        x: xs.at(-1)!,
+        y: ys.at(-1)!,
+    };
+}
+
+export function getNormal(
+    points: Points[],
+): { dx: number; dy: number } | undefined {
+    const currentSegmentIndex = getCurrentSegmentIndex(points);
+    if (currentSegmentIndex < 0) return;
+    const { xs, ys } = points[currentSegmentIndex];
+    const dx = xs.at(-1)! - xs.at(-2)!;
+    const dy = ys.at(-1)! - ys.at(-2)!;
+    const length = distance(dx, dy, 0, 0);
+    return {
+        dx: -dy / length,
+        dy: dx / length,
+    };
 }

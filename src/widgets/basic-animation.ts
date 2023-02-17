@@ -89,8 +89,7 @@ export function runBasicAnimation(
 
     function updateMask(mask: boolean) {
         outputContainer
-            .getElementsByTagName('g')
-            .item(0)!
+            .getElementsByTagName('g')[0]
             .setAttributeNS(null, 'mask', mask ? 'url(#logo)' : 'none');
     }
 
