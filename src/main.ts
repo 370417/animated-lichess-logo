@@ -5,6 +5,7 @@ import './style.css';
 import { tick } from './ticker';
 import { runBasicAnimation } from './widgets/basic-animation';
 import { runDrawPath } from './widgets/draw-path';
+import { runEdgeVectors } from './widgets/edge-vectors';
 
 // only need one mask for the entire page
 function setMask(animParams: AnimationParams) {
@@ -20,5 +21,6 @@ runDrawPath();
 runBasicAnimation('basic', false, false);
 runBasicAnimation('lerp', true, false);
 runBasicAnimation('mask', true, true);
+runEdgeVectors();
 
 tick();

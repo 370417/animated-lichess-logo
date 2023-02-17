@@ -15,22 +15,18 @@ import {
     standardPoints,
 } from './common-state';
 
-export function runBasicAnimation(
-    prefix: string,
-    doLerp: boolean,
-    applyMask: boolean,
-) {
+export function runEdgeVectors() {
     const frameLength = 101;
 
     const frame = producer<number>(frameLength - 1);
     const play = producer<boolean>(false);
-    const mask = producer<boolean>(applyMask);
+    const mask = producer<boolean>(true);
 
-    const rootId = `${prefix}Animation`;
-    const frameId = `${prefix}AnimationFrame`;
-    const playId = `${prefix}AnimationPlay`;
-    const lengthId = `${prefix}CurveLength`;
-    const maskToggleId = `${prefix}MaskToggle`;
+    const rootId = 'edgeVec';
+    const frameId = 'edgeVecFrame';
+    const playId = 'edgeVecPlay';
+    const lengthId = 'edgeVecLength';
+    const maskToggleId = 'edgeVecMaskToggle';
 
     subscribe(play, toggleTickerAndRange(frame, frameLength, 60, frameId));
 
@@ -51,7 +47,7 @@ export function runBasicAnimation(
                 standardPoints,
                 standardCurveLengths,
                 currentCurveLength,
-                doLerp,
+                true,
             ),
     );
 

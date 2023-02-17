@@ -90,6 +90,13 @@ export function parseAnimationParams(svg: SVGElement): AnimationParams {
     };
 }
 
+/**
+ * Get info about children as a map to make it easier to process.
+ * This is also where we turn endstart paths into separate start and end paths.
+ *
+ * We don't convert straight to an array in case there are missing indices.
+ * A map lets us detect that regardless of the order of the input.
+ */
 function childrenToMaps(
     children: HTMLCollection,
 ): [Map<string, SVGPathElement>, Map<string, SegmentData>] {
@@ -142,6 +149,8 @@ function childrenToMaps(
                 if (drawData.type != 'C' && drawData.type != 'L')
                     throw 'Parse error: path must end with C or L command';
                 pathDataByLabel.set(label, [moveData, drawData]);
+            } else if (/^envelope\d+$/.test(label)) {
+                const pathData = path.getPathData({ normalize: true });
             } else {
                 console.warn('Failed to parse path label, skipping:', label);
             }
