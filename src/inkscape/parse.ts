@@ -20,7 +20,7 @@ export type SegmentParams = {
  *
  * Parses children using the label of elements. Possible labels:
  * - mask
- *   Required.
+ *   Required. The original shape we want to animate.
  * - segment{n}-{n+1}-{n+2}... at least one number is required
  *   A path of bezier curves or straight lines numbered chronologically.
  *   The animation will follow these paths one by one.
@@ -41,6 +41,12 @@ export type SegmentParams = {
  *   start slope of one segment is always the same as the end slope of
  *   the previous segment.
  *   Parser does not check that the start index is the end index plus one.
+ * - envelope{n}
+ *   A closed path that fully covers its corresponding segment.
+ *   The order of points in the path matters here. The last two
+ *   points should be the ones near the end of the segment.
+ *   These correspond to the parts of the envelope that will move.
+ *   All other points of the path will remain fixed during animation.
  *
  * Indices start at 1.
  *
@@ -85,7 +91,7 @@ export function parseAnimationParams(svg: SVGElement): AnimationParams {
 }
 
 function childrenToMaps(
-    children: HTMLCollection
+    children: HTMLCollection,
 ): [Map<string, SVGPathElement>, Map<string, SegmentData>] {
     // Start, end, and mask paths only
     const pathsByLabel: Map<string, SVGPathElement> = new Map();
@@ -111,7 +117,7 @@ function childrenToMaps(
                 // Split segments with multiple parts into separate paths
                 const [firstLabel, ...moreIndices] = label.split('-');
                 const splitPaths = splitPathData(
-                    path.getPathData({ normalize: true })
+                    path.getPathData({ normalize: true }),
                 );
                 // Add one to account for firstLabel
                 if (splitPaths.length < moreIndices.length + 1) {

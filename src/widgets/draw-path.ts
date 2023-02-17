@@ -42,7 +42,7 @@ export function runDrawPath() {
         const createChild = (points: string) =>
             polyline({
                 points,
-                stroke: '#000',
+                stroke: '#fff',
                 fill: 'none',
             });
         const $svg = svg(width, height, ...points.map(createChild));

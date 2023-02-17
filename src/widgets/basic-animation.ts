@@ -71,7 +71,7 @@ export function runBasicAnimation(
         const createChild = (points: string) =>
             polyline({
                 points,
-                stroke: '#000',
+                stroke: '#fff',
                 fill: 'none',
                 'stroke-width': enableMask ? '5' : '1',
             });

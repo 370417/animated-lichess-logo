@@ -10,7 +10,7 @@ export function svg(
     const $svg = document.createElementNS(svgNamespace, 'svg');
     $svg.setAttributeNS(null, 'width', `${width}`);
     $svg.setAttributeNS(null, 'height', `${height}`);
-    $svg.setAttributeNS(null, 'viewBox', `-2 -2 ${width + 4} ${height + 4}`);
+    $svg.setAttributeNS(null, 'viewBox', `0 0 ${width} ${height}`);
     if (children) $svg.replaceChildren(...children);
     return $svg;
 }

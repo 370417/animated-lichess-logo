@@ -6,24 +6,23 @@
     <title>Animated Lichess logo</title>
   </head>
   <body>
-    <h1>(Re)animating the Lichess logo</h1>
     <p>
-      I'm remaking the
+      I’m remaking the
       <a
         href="https://lichess.org/@/user370417/blog/the-lichess-logo-animated/Df4SWGyX"
         >Lichess logo animation</a
       >
       to make it work outside the browser. I thought it might be nice to explain
-      what I'm doing as I go along, hence this blog post.
+      what I’m doing as I go along, hence this blog post.
     </p>
     <h2>Planning</h2>
-    <p>This is the Inkscape document I'm using to plan out the animation.</p>
+    <p>This is the Inkscape document I’m using to plan out the animation.</p>
     <img src="src/inkscape/logo-inkscape.svg" width="200px" height="200px" />
     <h2>Drawing the paths</h2>
     <p>
       Step one is drawing the paths we want to animate. There are built-in
-      functions for drawing bézier curves, but they can't draw partial paths.
-      That's something we'll need to implement ourselves.
+      functions for drawing bézier curves, but they can’t draw partial paths.
+      That’s something we’ll need to implement ourselves.
     </p>
     <div id="drawPath">
       <div class="output"></div>
