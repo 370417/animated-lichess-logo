@@ -15,6 +15,49 @@ export type SegmentParams = {
     endData?: [MovePathData, LinePathData];
 };
 
+export type AnimParams2 = {
+    width: number;
+    height: number;
+    innerSegments: PathData[][];
+    outerSegments: PathData[][];
+};
+
+export function parse2(svg: SVGElement): AnimParams2 {
+    const pathDataByLabel = new Map<string, PathData[]>();
+
+    for (let i = 0; i < svg.children.length; i++) {
+        const child = svg.children[i] as SVGElement;
+        const label = child.getAttribute('inkscape:label');
+
+        if (label && child.nodeName === 'path') {
+            const path = child as SVGPathElement;
+            if (/^(?:inner|outer)\d+$/.test(label)) {
+                pathDataByLabel.set(
+                    label,
+                    path.getPathData({ normalize: true }),
+                );
+            }
+        }
+    }
+
+    const innerSegments: PathData[][] = [];
+    const outerSegments: PathData[][] = [];
+    for (let segmentIndex = 1; true; segmentIndex++) {
+        const inner = pathDataByLabel.get('inner' + segmentIndex);
+        const outer = pathDataByLabel.get('outer' + segmentIndex);
+        if (!inner || !outer) break;
+        innerSegments.push(inner);
+        outerSegments.push(outer);
+    }
+
+    return {
+        width: Number(svg.getAttribute('width')),
+        height: Number(svg.getAttribute('height')),
+        innerSegments,
+        outerSegments,
+    };
+}
+
 /**
  * Extract animation parameters from an inkscape svg element.
  *

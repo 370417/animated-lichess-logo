@@ -10,8 +10,9 @@ export const standardPoints = transformer([animParams], (animParams) => {
     );
 });
 
-export const standardCurveLengths = transformer([standardPoints], (points) =>
-    cumulativeLength(points),
+export const standardCurveLengths = transformer(
+    [standardPoints],
+    cumulativeLength,
 );
 
 export const standardCurveLength = transformer(

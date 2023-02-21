@@ -22,6 +22,11 @@ export type Points = {
     ys: number[];
 };
 
+/**
+ * Approximate a path with lines.
+ * If the input is a bezier, number of output lines is iterations plus one.
+ * If the input already is a line, output is a single line.
+ */
 export function flatten(segmentData: SegmentData, iterations: number): Points {
     const [move, draw] = segmentData;
     if (draw.type === 'L') {
@@ -52,6 +57,44 @@ export function flatten(segmentData: SegmentData, iterations: number): Points {
         }
         return { xs, ys };
     }
+}
+
+export function flatten2(pathData: PathData[], iterations: number): Points {
+    if (pathData.length < 2) throw 'Path data too short';
+    const head = pathData[0];
+    if (head.type !== 'M') throw 'Path does not start with move';
+    let [x, y] = head.values;
+    let xs: number[] = [x];
+    let ys: number[] = [y];
+    for (let segmentI = 1; segmentI < pathData.length; segmentI++) {
+        const segment = pathData[segmentI];
+        if (segment.type == 'L') {
+            xs.push(segment.values[0]);
+            ys.push(segment.values[1]);
+        } else if (segment.type == 'C') {
+            let curveXs = [
+                x,
+                segment.values[0],
+                segment.values[2],
+                segment.values[4],
+            ];
+            let curveYs = [
+                y,
+                segment.values[1],
+                segment.values[3],
+                segment.values[5],
+            ];
+            // Add one because with 0 iterations there are still 2 points to make a flat line
+            const maxI = iterations + 1;
+            for (let i = 1; i <= maxI; i++) {
+                xs.push(deCasteljau(curveXs, i / maxI));
+                ys.push(deCasteljau(curveYs, i / maxI));
+            }
+        } else {
+            throw 'Unsupported path type';
+        }
+    }
+    return { xs, ys };
 }
 
 export function distance(
@@ -133,4 +176,76 @@ export function getNormal(
         dx: -dy / length,
         dy: dx / length,
     };
+}
+
+/**
+ * Find the intersection between two lines defined as:
+ * line A through [x1, y1] and [x2, y2]
+ * line B through [x3, y3] nad [x4, y4]
+ */
+// https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection#Given_two_points_on_each_line
+export function lineLineItersection(
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    x3: number,
+    y3: number,
+    x4: number,
+    y4: number,
+): [number, number] | undefined {
+    const xNumerator =
+        (x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4);
+    const yNumerator =
+        (x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4);
+    const denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+    if (denominator === 0) return;
+    else return [xNumerator / denominator, yNumerator / denominator];
+}
+
+export function dotProduct(
+    v1: readonly [number, number],
+    v2: readonly [number, number],
+): number {
+    return v1[0] * v2[0] + v1[1] * v2[1];
+}
+
+/**
+ * Find the closest intersection between a ray and a line:
+ * ray starts at [x1, y1] and goes through [x2, y2]
+ * line goes through [x3, y3] and [x4, y4]
+ */
+export function rayLineIntersection(
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    x3: number,
+    y3: number,
+    x4: number,
+    y4: number,
+): [number, number] | undefined {
+    // Intersection if the ray was a line
+    const lineIntersection = lineLineItersection(
+        x1,
+        y1,
+        x2,
+        y2,
+        x3,
+        y3,
+        x4,
+        y4,
+    );
+    if (!lineIntersection) return;
+    const rayVector = [x2 - x1, y2 - y1] as const;
+    const rayOriginToIntersection = [
+        lineIntersection[0] - x1,
+        lineIntersection[1] - y1,
+    ] as const;
+    // Only return the intersection if the ray is pointing at it
+    if (dotProduct(rayVector, rayOriginToIntersection) > 0) {
+        return lineIntersection;
+    } else {
+        return undefined;
+    }
 }

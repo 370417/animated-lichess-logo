@@ -66,7 +66,7 @@ export function transformer<T, H extends readonly Handle[]>(
     callbacks.set(handle, []);
     downstreamHandles.set(handle, []);
 
-    for (const upstream of Object.values(handles)) {
+    for (const upstream of handles) {
         downstreamHandles.get(upstream)?.push(handle);
     }
     return handle;

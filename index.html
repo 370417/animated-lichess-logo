@@ -159,9 +159,18 @@
     </div>
     <h2>Projection of edge vectors onto envelope</h2>
     <h2>Filling the envelope</h2>
+    <ul>
+      <li>New strat: maskless</li>
+      <li>end result: a list of items, one per frame</li>
+      <li>
+        One item: segment index and t value. then the animation client needs to
+        split the bezier manually
+      </li>
+    </ul>
     <svg width="0" height="0">
       <mask id="logo"></mask>
     </svg>
+    <input type="range" name="frame" id="frame" max="150" />
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
