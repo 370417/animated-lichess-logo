@@ -6,12 +6,10 @@ export type InkscapeSvg = string;
 
 /** Paths that form a single smooth stroke. */
 export type SegmentData = {
-    xStart: number;
-    yStart: number;
-    /** [control point 1, control point 2, endpoint] */
-    xPoints: [number, number, number][];
-    /** [control point 1, control point 2, endpoint] */
-    yPoints: [number, number, number][];
+    /** [endpoint, control point 1, control point 2, endpoint] */
+    xPoints: [number, number, number, number][];
+    /** [endpoint, control point 1, control point 2, endpoint] */
+    yPoints: [number, number, number, number][];
 };
 
 export type LogoData = {
@@ -137,32 +135,30 @@ function pathsToSegment(pathData: PathData[]): SegmentData {
     if (pathData.length < 2) throw 'Path data too short';
     const head = pathData[0];
     if (head.type !== 'M') throw 'Path does not start with move';
-    const [xStart, yStart] = head.values;
-    let lastX = xStart;
-    let lastY = yStart;
-    const xPoints: [number, number, number][] = [];
-    const yPoints: [number, number, number][] = [];
+    let [lastX, lastY] = head.values;
+    const xPoints: [number, number, number, number][] = [];
+    const yPoints: [number, number, number, number][] = [];
     for (let i = 1; i < pathData.length; i++) {
         const path = pathData[i];
         if (path.type == 'L') {
             // Treat lines as bezier curves with control points
             // on the start and endpoints.
             const [x, y] = path.values;
-            xPoints.push([lastX, x, x]);
-            yPoints.push([lastY, y, y]);
+            xPoints.push([lastX, lastX, x, x]);
+            yPoints.push([lastY, lastY, y, y]);
             lastX = x;
             lastY = y;
         } else if (path.type === 'C') {
             const [x1, y1, x2, y2, x, y] = path.values;
-            xPoints.push([x1, x2, x]);
-            yPoints.push([y1, y2, y]);
+            xPoints.push([lastX, x1, x2, x]);
+            yPoints.push([lastY, y1, y2, y]);
             lastX = x;
             lastY = y;
         } else {
             throw 'Unsupported path type';
         }
     }
-    return { xStart, yStart, xPoints, yPoints };
+    return { xPoints, yPoints };
 }
 
 export function flatten(
@@ -176,24 +172,22 @@ function flattenSegment(
     segment: SegmentData,
     iterations: number,
 ): SegmentPoints {
-    let x = segment.xStart;
-    let y = segment.yStart;
-    const xs: number[] = [x];
-    const ys: number[] = [y];
+    const xs: number[] = [segment.xPoints[0][0]];
+    const ys: number[] = [segment.yPoints[0][0]];
     const ts: number[] = [0];
     const curveIndices = [0];
     for (let i = 0; i < segment.xPoints.length; i++) {
         let curveXs = [
-            x,
             segment.xPoints[i][0],
             segment.xPoints[i][1],
             segment.xPoints[i][2],
+            segment.xPoints[i][3],
         ];
         let curveYs = [
-            y,
             segment.yPoints[i][0],
             segment.yPoints[i][1],
             segment.yPoints[i][2],
+            segment.yPoints[i][3],
         ];
         for (let j = 0; j <= iterations; j++) {
             const t = (j + 1) / (iterations + 1);
@@ -202,8 +196,6 @@ function flattenSegment(
             ts.push(t);
             curveIndices.push(i);
         }
-        x = segment.xPoints[i][2];
-        y = segment.yPoints[i][2];
     }
     return { xs, ys, ts, curveIndices };
 }
@@ -435,8 +427,6 @@ export function drawAnimationFrame(
     const innerT = animationData.innerTByFrame[frame];
     const outerT = animationData.outerTByFrame[frame];
 
-    console.log(frame, segmentIndex, outerPathIndex, outerT);
-
     ctx.clearRect(0, 0, 50, 50);
 
     // outer first
@@ -444,29 +434,25 @@ export function drawAnimationFrame(
     ctx.fillStyle = '#fff';
     ctx.strokeStyle = '#fff';
     ctx.beginPath();
-    const { xStart, yStart } = animationData.outerSegments[0];
-    let lastX = xStart;
-    let lastY = yStart;
-    ctx.moveTo(xStart, yStart);
+    ctx.moveTo(
+        animationData.outerSegments[0].xPoints[0][0],
+        animationData.outerSegments[0].yPoints[0][0],
+    );
     for (let i = 0; i < segmentIndex; i++) {
         const { xPoints, yPoints } = animationData.outerSegments[i];
         for (let j = 0; j < xPoints.length; j++) {
-            const [x1, x2, x] = xPoints[j];
-            const [y1, y2, y] = yPoints[j];
-            ctx.bezierCurveTo(x1, y1, x2, y2, x, y);
-            lastX = x;
-            lastY = y;
+            const [_x0, x1, x2, x3] = xPoints[j];
+            const [_y0, y1, y2, y3] = yPoints[j];
+            ctx.bezierCurveTo(x1, y1, x2, y2, x3, y3);
         }
     }
     const currOuterSegment = animationData.outerSegments[segmentIndex];
     for (let i = 0; i < outerPathIndex; i++) {
         const { xPoints, yPoints } = currOuterSegment;
         for (let j = 0; j <= i; j++) {
-            const [x1, x2, x] = xPoints[j];
-            const [y1, y2, y] = yPoints[j];
-            ctx.bezierCurveTo(x1, y1, x2, y2, x, y);
-            lastX = x;
-            lastY = y;
+            const [_x0, x1, x2, x3] = xPoints[j];
+            const [_y0, y1, y2, y3] = yPoints[j];
+            ctx.bezierCurveTo(x1, y1, x2, y2, x3, y3);
         }
     }
     const outerXs = currOuterSegment.xPoints[outerPathIndex];
@@ -491,12 +477,8 @@ export function drawAnimationFrame(
         0,
         outerT * outerT * outerT,
     );
-    const newOuterXs = directMatrix.transform(
-        new Vector4(lastX, outerXs[0], outerXs[1], outerXs[2]),
-    );
-    const newOuterYs = directMatrix.transform(
-        new Vector4(lastY, outerYs[0], outerYs[1], outerYs[2]),
-    );
+    const newOuterXs = directMatrix.transform(new Vector4(...outerXs));
+    const newOuterYs = directMatrix.transform(new Vector4(...outerYs));
     ctx.bezierCurveTo(
         newOuterXs._v4storage[1],
         newOuterYs._v4storage[1],
