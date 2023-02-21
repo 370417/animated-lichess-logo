@@ -404,7 +404,6 @@ function animationData(
         const progress = progressByT(lengthProgress, pathLengths, points);
         curveIndexByFrame.push(progress.curveIndex);
         segmentIndexByFrame.push(lengthProgress.segmentIndex);
-        // bookmark
         tByFrame.push(progress.t);
     }
 
