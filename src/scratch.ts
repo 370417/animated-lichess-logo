@@ -177,22 +177,10 @@ function flattenSegment(
     const ts: number[] = [0];
     const curveIndices = [0];
     for (let i = 0; i < segment.xPoints.length; i++) {
-        let curveXs = [
-            segment.xPoints[i][0],
-            segment.xPoints[i][1],
-            segment.xPoints[i][2],
-            segment.xPoints[i][3],
-        ];
-        let curveYs = [
-            segment.yPoints[i][0],
-            segment.yPoints[i][1],
-            segment.yPoints[i][2],
-            segment.yPoints[i][3],
-        ];
         for (let j = 0; j <= iterations; j++) {
             const t = (j + 1) / (iterations + 1);
-            xs.push(deCasteljau(curveXs, t));
-            ys.push(deCasteljau(curveYs, t));
+            xs.push(deCasteljau(segment.xPoints[i], t));
+            ys.push(deCasteljau(segment.yPoints[i], t));
             ts.push(t);
             curveIndices.push(i);
         }
