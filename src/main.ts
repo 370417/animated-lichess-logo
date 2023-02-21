@@ -31,10 +31,11 @@ tick();
 console.log(s.get(animationData));
 
 const canvas = document.createElement('canvas');
-canvas.width = 50;
-canvas.height = 50;
+canvas.width = 600;
+canvas.height = 600;
 document.body.appendChild(canvas);
 const ctx = canvas.getContext('2d')!;
+ctx.scale(12, 12);
 
 const frame = s.atom(0);
 const frameAnimation = s.derived(

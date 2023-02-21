@@ -428,10 +428,9 @@ export function drawAnimationFrame(
 
     ctx.clearRect(0, 0, 50, 50);
 
-    // outer first
-    // draw full paths
     ctx.fillStyle = '#fff';
     ctx.strokeStyle = '#fff';
+    ctx.lineJoin = 'round';
     ctx.beginPath();
     ctx.moveTo(
         animationData.outerSegments[0].xPoints[0][0],
@@ -446,9 +445,9 @@ export function drawAnimationFrame(
         }
     }
     const currOuterSegment = animationData.outerSegments[segmentIndex];
-    for (let i = 0; i < outerPathIndex; i++) {
+    {
         const { xPoints, yPoints } = currOuterSegment;
-        for (let j = 0; j <= i; j++) {
+        for (let j = 0; j < outerPathIndex; j++) {
             const [_x0, x1, x2, x3] = xPoints[j];
             const [_y0, y1, y2, y3] = yPoints[j];
             ctx.bezierCurveTo(x1, y1, x2, y2, x3, y3);
@@ -456,28 +455,9 @@ export function drawAnimationFrame(
     }
     const outerXs = currOuterSegment.xPoints[outerPathIndex];
     const outerYs = currOuterSegment.yPoints[outerPathIndex];
-    createSplitMatrix(outerT);
-    const minusT = 1 - outerT;
-    const directMatrix = new Matrix4(
-        1,
-        minusT,
-        minusT * minusT,
-        minusT * minusT * minusT,
-        0,
-        outerT,
-        2 * minusT * outerT,
-        3 * minusT * minusT * outerT,
-        0,
-        0,
-        outerT * outerT,
-        3 * minusT * outerT * outerT,
-        0,
-        0,
-        0,
-        outerT * outerT * outerT,
-    );
-    const newOuterXs = directMatrix.transform(new Vector4(...outerXs));
-    const newOuterYs = directMatrix.transform(new Vector4(...outerYs));
+    const outerSplitMatrix = createSplitMatrix(outerT);
+    const newOuterXs = outerSplitMatrix.transform(new Vector4(...outerXs));
+    const newOuterYs = outerSplitMatrix.transform(new Vector4(...outerYs));
     ctx.bezierCurveTo(
         newOuterXs._v4storage[1],
         newOuterYs._v4storage[1],
@@ -486,31 +466,60 @@ export function drawAnimationFrame(
         newOuterXs._v4storage[3],
         newOuterYs._v4storage[3],
     );
+    const currInnerSegment = animationData.innerSegments[segmentIndex];
+    const innerXs = currInnerSegment.xPoints[innerPathIndex];
+    const innerYs = currInnerSegment.yPoints[innerPathIndex];
+    const innerSplitMatrix = createSplitMatrix(innerT);
+    const newInnerXs = innerSplitMatrix.transform(new Vector4(...innerXs));
+    const newInnerYs = innerSplitMatrix.transform(new Vector4(...innerYs));
+    ctx.lineTo(newInnerXs._v4storage[3], newInnerYs._v4storage[3]);
+    ctx.bezierCurveTo(
+        newInnerXs._v4storage[2],
+        newInnerYs._v4storage[2],
+        newInnerXs._v4storage[1],
+        newInnerYs._v4storage[1],
+        newInnerXs._v4storage[0],
+        newInnerYs._v4storage[0],
+    );
+    {
+        const { xPoints, yPoints } = currInnerSegment;
+        for (let j = innerPathIndex - 1; j >= 0; j--) {
+            const [x0, x1, x2, _x3] = xPoints[j];
+            const [y0, y1, y2, _y3] = yPoints[j];
+            ctx.bezierCurveTo(x2, y2, x1, y1, x0, y0);
+        }
+    }
+    for (let i = segmentIndex - 1; i >= 0; i--) {
+        const { xPoints, yPoints } = animationData.innerSegments[i];
+        for (let j = xPoints.length - 1; j >= 0; j--) {
+            const [x0, x1, x2, _x3] = xPoints[j];
+            const [y0, y1, y2, _y3] = yPoints[j];
+            ctx.bezierCurveTo(x2, y2, x1, y1, x0, y0);
+        }
+    }
 
+    ctx.closePath();
+
+    ctx.fill();
     ctx.stroke();
-    // draw partial path
-
-    // inner
-    // draw partial path
-    // draw partial paths
 }
 
 const bezierCoefficients = new Matrix4(
     1,
-    0,
-    0,
-    0,
     -3,
     3,
-    0,
+    -1,
     0,
     3,
     -6,
     3,
     0,
-    -1,
+    0,
     3,
     -3,
+    0,
+    0,
+    0,
     1,
 );
 

@@ -10,8 +10,8 @@ import { Store } from './state2';
 export const s = new Store();
 
 export const logoData = s.atom(fromInkscape(inkscapeFile));
-export const iterations = s.atom(20);
-export const numFrames = s.atom(151);
+export const iterations = s.atom(50);
+export const numFrames = s.atom(256);
 
 const innerPoints = s.derived(
     [iterations, logoData] as const,
