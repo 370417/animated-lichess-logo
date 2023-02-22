@@ -1,14 +1,9 @@
-@font-face {
-    font-family: CrimsonPro;
-    src: url('CrimsonPro-ExtraLight.subset.woff2');
-    font-style: normal;
-}
-
 :root {
     background: #2b0514;
     color: #fffd;
     font-size: 24px;
     font-family: system-ui, sans-serif;
+    line-height: 1.4;
 }
 
 h2 {
@@ -23,7 +18,6 @@ div.output {
 
 p,
 ul {
-    font: 200 1em/1.3 CrimsonPro, serif;
     width: 20em;
 }
 

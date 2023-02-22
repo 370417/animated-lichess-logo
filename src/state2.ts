@@ -150,25 +150,3 @@ export class Store {
         propagateState(handle);
     }
 }
-
-// Example
-
-// Define some state
-const store = new Store();
-const big = store.atom(48);
-const small = store.atom(18);
-
-// Define some logic
-function gcd(a: number, b: number): number {
-    return b ? gcd(b, a % b) : Math.abs(a);
-}
-
-// Derive state
-const divisor = store.derived([big, small], gcd);
-store.get(divisor); // 6
-
-// Subscribe to changes
-store.subscribe(divisor, console.log);
-
-// Mutate state
-store.set(small, 20); // logged in console: 4
