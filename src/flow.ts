@@ -1,4 +1,4 @@
-import inkscapeFile from './inkscape/2.svg?raw';
+import inkscapeFile from './inkscape/bend.svg?raw';
 import {
     createAnimationData,
     cumulativeLength,

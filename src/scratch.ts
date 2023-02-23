@@ -27,7 +27,7 @@ export type SegmentPoints = {
     /** y coordinates */
     ys: number[];
     /** Parametric t value used to calculate this x and y coordinate */
-    ts: number[];
+    ts: number[]; // can we derive this from index instead of storing it?
     /**
      * Index of the curve that this point belongs to,
      * since segments can contain multiple curves.
@@ -78,6 +78,17 @@ export type AnimationData = {
     outerTByFrame: number[];
 };
 
+/**
+ * Parse input data from an inkscape save file.
+ *
+ * File should contain open paths labeled as inner{n}, outer{n}, and anim{n}
+ * where {n} goes from 1 to 6 (or higher, but the lichess logo only has six
+ * distinct sections). Curly braces should not be a part of label name.
+ * Label refers to inkscape label, not id.
+ *
+ * Paths should line up so that inner2 starts where inner1 ends, etc.
+ * All paths should point in the same direction.
+ */
 export function fromInkscape(inkscapeFile: InkscapeSvg): LogoData {
     // First line isn't html, so remove it
     const svgText = inkscapeFile.replace(/<\?xml.*\?>\n/, '');
@@ -131,6 +142,9 @@ function parse(svg: SVGElement): LogoData {
     };
 }
 
+// PathData has three points per curve. SegmentData has four points per curve.
+// Converting to four points per curve helps us iterate over curves backwards
+// more easily.
 function pathsToSegment(pathData: PathData[]): SegmentData {
     if (pathData.length < 2) throw 'Path data too short';
     const head = pathData[0];
@@ -161,6 +175,10 @@ function pathsToSegment(pathData: PathData[]): SegmentData {
     return { xPoints, yPoints };
 }
 
+/**
+ * Flatten a series of bezier curves into `iterations + 1` line segments
+ * represented by `iterations + 2` points.
+ */
 export function flatten(
     segments: SegmentData[],
     iterations: number,
@@ -212,6 +230,7 @@ function inverseLerp(min: number, max: number, middle: number): number {
     return (middle - min) / (max - min);
 }
 
+/** Calculate length from start to every point in segment points. */
 export function cumulativeLength(points: SegmentPoints[]): CumulativeLengths {
     let length = 0;
     return points.map(({ xs, ys }) => {
@@ -233,6 +252,7 @@ export function distance(
     return Math.sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
 }
 
+/** Calculate what the length should be at a given frame. Uses lerp. */
 export function lengthAtFrame(
     frame: number,
     maxFrame: number,
@@ -243,6 +263,15 @@ export function lengthAtFrame(
     return (totalLength * frame) / maxFrame;
 }
 
+/**
+ * Calculate progress along the curve in terms of segment index and length ratio.
+ *
+ * Length ratio is just progress along a specific segment measured as ratio
+ * of current length to total length.
+ * Calculating segment index and length ratio is useful because we want to
+ * constrain the animation to have the inner and outer paths always be at the
+ * same segment on any given frame.
+ */
 export function progressByLength(
     length: number,
     animationLengths: CumulativeLengths,
@@ -263,6 +292,20 @@ export function progressByLength(
     throw 'Length argument longer than cumulative lengths';
 }
 
+/**
+ * Calculate progress along a single segment in terms of curve index and t.
+ *
+ * t is the parametric argument to a bezier curve, ranging from 0 to 1.
+ * Curve index is not cumulative. It starts at 0 for each segment even if
+ * the segment is not the first segment of the overall path.
+ *
+ * Length (even length ratio) is different from t, and the exact conversion
+ * between the two is complicated, which is why we approximate curves to
+ * calculate length.
+ *
+ * Length is needed to control the visual rate of animation progress.
+ * We convert length to t to subdivide bezier curves.
+ */
 export function progressByT(
     lenthProgress: LengthProgress,
     lengths: CumulativeLengths,

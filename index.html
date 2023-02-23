@@ -15,6 +15,57 @@
       to make it work outside the browser. I thought it might be nice to explain
       what I’m doing as I go along, hence this blog post.
     </p>
+    <p>
+      I've been interpolating inner and outer path length linearly, but I don't
+      think I should be.
+    </p>
+    <p>
+      From every point on inner/outer path, draw normal, find intersection of
+      normal and animation path. If animation path isn't long enough, extend it
+      with tangent lines. Use the distances between these intersection points to
+      decide how fast to move along inner/outer path. But what if normals cross
+      each other, making the distance negative? I guess that means the curvature
+      is unrealistically large.
+    </p>
+    <p>
+      Derive lengths along inner/outer path from <i>reciprocals</i> of lengths
+      between intersection points of normals and animation path. Though using
+      reciprocals will break if there is division by 0. So instead we need to
+      interpolate by adjusting x values, not y values?
+    </p>
+    <p>
+      Nvm, we need to store outer/inner path length by animation path length.
+      Since animation path length is not in regular increments, we can't use a
+      list to represent this number to number map. Can use a sorted map instead?
+      And we need to scale the keys of the map to make the values fit?
+    </p>
+    <p>
+      Also, in theory the normal is the wrong thing to use. What we actually
+      need is the closest point to the inner/outer curve. The normal is a good
+      approximation of closest distance when the curves are close to parallel,
+      but not if the curves are significantly skewed.
+    </p>
+    <p>---</p>
+    <p>
+      For regularly sampled points (by t) on inner/outer path, find the closest
+      point to it on the animation path (animation path extended by tangent rays
+      in case of overhang). Take these closest points, put them in a list, and
+      calculate the cumulative lengths along them. The total length can be
+      bigger or smaller than the actual length of the animation path along the
+      relevant segment because of over/underhang (ie when at the start of the
+      segment the leading edge is not perpendicular to the animation path). We
+      don't care because we normalize these lengths so that the total length is
+      1. This data lets us take a current length ratio along the animation path,
+      binary search in the data to find the two closest values in the data, and
+      lerp to estimate the true index we are looking for. This index can then be
+      translated to a t value on the inner/outer path.
+    </p>
+    <p>
+      Calculating tangents at endpoints: if closest control point is unusable
+      (produces dy/dx of 0/0), use the other control point. It that is also
+      unusable, use the other endpoint. If that is unusable, all four of your
+      points are the exact same, so any line counts as tangent.
+    </p>
     <input type="range" name="frame" id="frame" min="0" max="255" />
     <script type="module" src="/src/main.ts"></script>
   </body>
