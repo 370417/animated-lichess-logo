@@ -1,6 +1,6 @@
-import { animationData, s } from './flow';
-import { drawAnimationFrame } from './scratch';
-import { AtomHandle, Store } from './state2';
+import { animationData, s } from './atoms';
+import { drawAnimationFrame } from './render';
+import type { AtomHandle, Store } from './state';
 import './style.css';
 
 const canvas = document.createElement('canvas');

@@ -19,8 +19,6 @@ declare global {
         | BezierPathData
         | ClosePathData;
 
-    type SegmentData = [MovePathData, LinePathData | BezierPathData];
-
     type MovePathData = {
         type: 'M';
         /** [x, y] */

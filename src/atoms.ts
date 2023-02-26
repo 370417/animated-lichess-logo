@@ -1,11 +1,9 @@
-import inkscapeFile from './inkscape/bend.svg?raw';
-import {
-    createAnimationData,
-    cumulativeLength,
-    flatten,
-    fromInkscape,
-} from './scratch';
-import { Store } from './state2';
+import { createAnimationData } from './build';
+import { flatten } from './build/flatten';
+import { fromInkscape } from './build/parse';
+import { cumulativeLength } from './build/path-length';
+import inkscapeFile from './build/inkscape/2.svg?raw';
+import { Store } from './state';
 
 export const s = new Store();
 
