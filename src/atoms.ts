@@ -12,12 +12,11 @@ export const logoData = s.atom(fromInkscape(inkscapeFile));
 export const iterations = s.atom(500);
 export const numFrames = s.atom(256);
 
-// temp export
-export const innerPoints = s.derived(
+const innerPoints = s.derived(
     [iterations, logoData] as const,
     (iterations, { innerSegments }) => flatten(innerSegments, iterations),
 );
-export const outerPoints = s.derived(
+const outerPoints = s.derived(
     [iterations, logoData] as const,
     (iterations, { outerSegments }) => flatten(outerSegments, iterations),
 );
@@ -27,12 +26,12 @@ const animationPoints = s.derived(
         flatten(animationSegments, iterations),
 );
 
-export const weightedInnerPoints = s.derived(
+const weightedInnerPoints = s.derived(
     [innerPoints, animationPoints, logoData] as const,
     (innerPoints, animationPoints, { animationSegments }) =>
         projectPointsToBezier(innerPoints, animationPoints, animationSegments),
 );
-export const weightedOuterPoints = s.derived(
+const weightedOuterPoints = s.derived(
     [outerPoints, animationPoints, logoData] as const,
     (outerPoints, animationPoints, { animationSegments }) =>
         projectPointsToBezier(outerPoints, animationPoints, animationSegments),

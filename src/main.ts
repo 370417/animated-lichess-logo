@@ -1,12 +1,5 @@
-import {
-    animationData,
-    innerPoints,
-    outerPoints,
-    s,
-    weightedInnerPoints,
-    weightedOuterPoints,
-} from './atoms';
-import { drawAnimationFrame, drawExtraAnimation } from './render';
+import { animationData, s } from './atoms';
+import { drawAnimationFrame } from './render';
 import type { AtomHandle, Store } from './state';
 import './style.css';
 
@@ -25,36 +18,6 @@ const frameAnimation = s.derived(
 s.subscribe(frameAnimation, ([frame, animationData]) => {
     drawAnimationFrame(animationData, frame, ctx);
 });
-s.subscribe(
-    s.derived(
-        [
-            animationData,
-            innerPoints,
-            outerPoints,
-            weightedInnerPoints,
-            weightedOuterPoints,
-            frame,
-        ] as const,
-        (a, b, c, d, e, f) => [a, b, c, d, e, f] as const,
-    ),
-    ([
-        animationData,
-        innerPoints,
-        outerPoints,
-        weightedInnerPoints,
-        weightedOuterPoints,
-        frame,
-    ]) =>
-        drawExtraAnimation(
-            animationData,
-            innerPoints,
-            outerPoints,
-            weightedInnerPoints,
-            weightedOuterPoints,
-            frame,
-            ctx,
-        ),
-);
 hydrateRange(s, 'frame', frame);
 
 function hydrateRange(s: Store, id: string, handle: AtomHandle<number>): void {
